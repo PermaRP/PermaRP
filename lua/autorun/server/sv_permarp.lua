@@ -127,7 +127,7 @@ function permarp_door_unlocked(door)
 end
 
 function permarp_player_position_update(ply)
-   if not ply:Alive() then return end
+   if not ply:Alive() or (not ply:IsOnGround() and not ply:InVehicle()) then return end
    db_do(
       string.format([[
 REPLACE INTO permarp_player_position
