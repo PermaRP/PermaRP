@@ -125,18 +125,16 @@ function permarp_player_position_update(ply)
    if not ply:Alive() or (not ply:IsOnGround() and not ply:InVehicle()) then return end
    db_do(
       string.format([[
-REPLACE INTO permarp_player_position
-VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)
+REPLACE INTO permarp_player_positions
+VALUES(%s,%s,%s,%s,%s,%s)
 ]],
          MySQLite.SQLStr(ply:SteamID64()),
          MySQLite.SQLStr(ply:GetName()),
          MySQLite.SQLStr(string.lower(game.GetMap())),
          MySQLite.SQLStr(tostring(ply:GetPos().x)),
          MySQLite.SQLStr(tostring(ply:GetPos().y)),
-         MySQLite.SQLStr(tostring(ply:GetPos().z)),
-         MySQLite.SQLStr(0),
-         MySQLite.SQLStr(0),
-         MySQLite.SQLStr(0)))
+         MySQLite.SQLStr(tostring(ply:GetPos().z)))
+   )
 end
 
 function permarp_player_leave(ply)
@@ -224,9 +222,6 @@ map VARCHAR(45) NOT NULL,
 posx FLOAT NOT NULL,
 posy FLOAT NOT NULL,
 posz FLOAT NOT NULL,
-orix FLOAT NOT NULL,
-oriy FLOAT NOT NULL,
-oriz FLOAT NOT NULL,
 PRIMARY KEY(user_id,map));
 ]])
 end
