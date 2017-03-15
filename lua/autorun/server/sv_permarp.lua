@@ -90,6 +90,9 @@ WHERE user_id = %s;
             e:getDoorData().nonOwnable = false
             e:getDoorData().allowedToOwn = {}
             e:getDoorData().allowedToOwn[ply:UserID()] = true
+            DarkRP.updateDoorData(e,"title")
+            DarkRP.updateDoorData(e,"nonOwnable")
+            DarkRP.updateDoorData(e,"allowedToOwn")
             e:SetVar("user_id",tostring(ply:SteamID64()))
             e:keysOwn(ply)
             if row.locked == "true" then e:keysLock() else e:keysUnLock() end
@@ -125,6 +128,8 @@ WHERE user_id = %s AND map = %s;
             if not IsValid(e) then continue end
             e:getDoorData().nonOwnable = true
             e:getDoorData().title = "Owned by:\n"..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")"
+            DarkRP.updateDoorData(e,"title")
+            DarkRP.updateDoorData(e,"nonOwnable")
             e:SetVar("user_id",tostring(ply:SteamID64()))
             if row.locked == "true" then e:keysLock() else e:keysUnLock() end
          end
@@ -148,6 +153,9 @@ WHERE map = %s;]],MySQLite.SQLStr(string.lower(game.GetMap()))),
             if not IsValid(e) then continue end
             e:getDoorData().nonOwnable = true
             e:getDoorData().title = "Owned by:\n "..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")"
+            DarkRP.updateDoorData(e,"title")
+            DarkRP.updateDoorData(e,"nonOwnable")
+            
             e:SetVar("user_id",row.user_id)
             if row.locked == "true" then e:keysLock() else e:keysUnLock() end
          end
