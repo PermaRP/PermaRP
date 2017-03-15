@@ -72,7 +72,7 @@ function permarp_player_join(ply)
 
    db_do(
       string.format([[
-SELECT posx, posy, posz, orix, oriy, oriz
+SELECT posx, posy, posz
 FROM permarp_player_positions
 WHERE user_id = %s AND map = %s
 ]],
