@@ -2,8 +2,6 @@
 -- Serverside script
 if CLIENT then return end
 
-ignore_lock = false
-
 -- DB Helper
 function db_do(query,fnc)
    MySQLite.query(query,
@@ -15,7 +13,6 @@ function db_do(query,fnc)
 end
 
 function db_write_locked(door,locked)
-   if ignore_lock then return end
       db_do(
       string.format([[
 UPDATE permarp_door_owners
@@ -89,7 +86,6 @@ WHERE user_id = %s AND map = %s
       end
    )
    
-   ignore_lock = true
    db_do(
       string.format([[
 SELECT id, locked
@@ -111,11 +107,10 @@ WHERE user_id = %s;
             DarkRP.updateDoorData(e,"allowedToOwn")
             e:SetVar("user_id",tostring(ply:SteamID64()))
             e:keysOwn(ply)
-            if row.locked == "true" then e:keysLock() else e:keysUnLock() end
+            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end
          end
       end
    )
-   ignore_lock = false
 end
 
 function permarp_door_locked(door)
@@ -147,7 +142,6 @@ end
 function permarp_player_leave(ply)
    permarp_player_name_update(ply)
    permarp_player_position_update(ply)
-   ignore_lock = true
    db_do(
       string.format([[
 SELECT *
@@ -166,16 +160,14 @@ WHERE user_id = %s AND map = %s;
             DarkRP.updateDoorData(e,"title")
             DarkRP.updateDoorData(e,"nonOwnable")
             e:SetVar("user_id",tostring(ply:SteamID64()))
-            if row.locked == "true" then e:keysLock() else e:keysUnLock() end
+            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end
          end
       end
    )
-   ignore_lock = false
 end
 
 -- Parse database contents
 function db_parse()
-   ignore_lock = true
    db_do(
       string.format([[
 SELECT *
@@ -192,11 +184,10 @@ WHERE map = %s;]],MySQLite.SQLStr(string.lower(game.GetMap()))),
             DarkRP.updateDoorData(e,"nonOwnable")
             
             e:SetVar("user_id",row.user_id)
-            if row.locked == "true" then e:keysLock() else e:keysUnLock() end
+            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end
          end
       end
    )
-   ignore_lock = false
 end
 
 -- Check whether a table exists or not, if not call db_init()
