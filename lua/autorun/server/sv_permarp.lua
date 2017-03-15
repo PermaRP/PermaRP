@@ -2,6 +2,8 @@
 -- Serverside script
 if CLIENT then return end
 
+just_joined = {}
+
 -- DB Helper
 function db_do(query,fnc)
    MySQLite.query(query,
@@ -69,23 +71,8 @@ end
 
 function permarp_player_join(ply)
    permarp_player_name_update(ply)
+   just_joined[ply:SteamID64()] = true;
 
-   db_do(
-      string.format([[
-SELECT posx, posy, posz
-FROM permarp_player_positions
-WHERE user_id = %s AND map = %s
-]],
-         MySQLite.SQLStr(ply:SteamID64()),
-         MySQLite.SQLStr(string.lower(game.GetMap()))),
-      function (r)
-         if not r then return end
-         for _, row in pairs(r) do
-            ply:SetPos(Vector(row.posx,row.posy,row.posz))
-         end
-      end
-   )
-   
    db_do(
       string.format([[
 SELECT id, locked
@@ -275,6 +262,30 @@ WHERE id = %s AND map = %s;]],
    )
 end
 
+function permarp_player_spawn(ply)
+   if not just_joined[ply:SteamID64()] then return end
+   db_do(
+      string.format([[
+SELECT posx, posy, posz
+FROM permarp_player_positions
+WHERE user_id = %s AND map = %s
+]],
+         MySQLite.SQLStr(ply:SteamID64()),
+         MySQLite.SQLStr(string.lower(game.GetMap()))),
+      function (r)
+         if not r then return end
+         for _, row in pairs(r) do
+            timer.Create("OtherSpawnTimer", 0, 1,
+                         function()
+                            ply:SetPos(Vector(row.posx,row.posy,row.posz))
+                         end
+            )
+         end
+      end
+   )
+   just_joined[ply:SteamID64()] = false
+end
+
 hook.Add("OnGamemodeLoaded","permarp_gamemode_serverhook",
          function()
             if GAMEMODE.Name != "DarkRP" then return end
@@ -289,6 +300,7 @@ hook.Add("OnGamemodeLoaded","permarp_gamemode_serverhook",
             hook.Add("onKeysUnlocked","permarp_door_locked",permarp_door_unlocked)           
             hook.Add("PlayerInitialSpawn","permarp_player_join",permarp_player_join)
             hook.Add("PlayerDisconnected","permarp_player_disconnected",permarp_player_leave)
+            hook.Add("PlayerSpawn","permarp_player_spawn",permarp_player_spawn)
             timer.Create("permarp_data_validity_check",5*60,0,db_check_data_valid)
          end
 )
