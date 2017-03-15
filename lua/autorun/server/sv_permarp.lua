@@ -94,7 +94,8 @@ WHERE user_id = %s;
             DarkRP.updateDoorData(e,"allowedToOwn")
             e:SetVar("user_id",tostring(ply:SteamID64()))
             e:keysOwn(ply)
-            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end
+            
+            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end           
          end
       end
    )
@@ -145,7 +146,11 @@ WHERE user_id = %s AND map = %s;
             DarkRP.updateDoorData(e,"title")
             DarkRP.updateDoorData(e,"nonOwnable")
             e:SetVar("user_id",tostring(ply:SteamID64()))
-            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end
+            timer.Create("permarp_lock_timer", 0, 1,
+                         function()
+                            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end
+                         end
+            )
          end
       end
    )
@@ -275,7 +280,7 @@ WHERE user_id = %s AND map = %s
       function (r)
          if not r then return end
          for _, row in pairs(r) do
-            timer.Create("OtherSpawnTimer", 0, 1,
+            timer.Create("permarp_spawn_timer", 0, 1,
                          function()
                             ply:SetPos(Vector(row.posx,row.posy,row.posz))
                          end
