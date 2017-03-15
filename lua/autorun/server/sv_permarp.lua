@@ -24,8 +24,8 @@ WHERE id = %s AND map = %s;
 ]],
          MySQLite.SQLStr(locked),
          MySQLite.SQLStr(door:doorIndex()),
-         MySQLite.SQLStr(string.lower(game.GetMap())))
-   )
+         MySQLite.SQLStr(string.lower(game.GetMap()))
+      ))
 end
 
 ---- Hook handlers
@@ -72,6 +72,22 @@ end
 
 function permarp_player_join(ply)
    permarp_player_name_update(ply)
+
+   db_do(
+      string.format([[
+SELECT posx, posy, posz, orix, oriy, oriz
+FROM permarp_player_positions
+WHERE user_id = %s AND map = %s
+]],
+         MySQLite.SQLStr(ply:SteamID64()),
+         MySQLite.SQLStr(string.lower(game.GetMap()))),
+      function (r)
+         if not r then return end
+         for _, row in pairs(r) do
+            ply:SetPos(Vector(row.posx,row.posy,row.posz))
+         end
+      end
+   )
    
    ignore_lock = true
    db_do(
@@ -110,8 +126,27 @@ function permarp_door_unlocked(door)
    db_write_locked(door,false)
 end
 
+function permarp_player_position_update(ply)
+   if not ply:Alive() then return end
+   db_do(
+      string.format([[
+REPLACE INTO permarp_player_position
+VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)
+]],
+         MySQLite.SQLStr(ply:SteamID64()),
+         MySQLite.SQLStr(ply:GetName()),
+         MySQLite.SQLStr(string.lower(game.GetMap())),
+         MySQLite.SQLStr(tostring(ply:GetPos().x)),
+         MySQLite.SQLStr(tostring(ply:GetPos().y)),
+         MySQLite.SQLStr(tostring(ply:GetPos().z)),
+         MySQLite.SQLStr(0),
+         MySQLite.SQLStr(0),
+         MySQLite.SQLStr(0)))
+end
+
 function permarp_player_leave(ply)
    permarp_player_name_update(ply)
+   permarp_player_position_update(ply)
    ignore_lock = true
    db_do(
       string.format([[
@@ -187,14 +222,28 @@ CREATE TABLE IF NOT EXISTS permarp_door_owners(
 id INTEGER NOT NULL, 
 map VARCHAR(45) NOT NULL, 
 user_id BIGINT NOT NULL,
-user_name VARCHAR NOT NULL,
+user_name VARCHAR(64) NOT NULL,
 locked BOOL NOT NULL,
-PRIMARY KEY(id,map));]])
+PRIMARY KEY(id,map));
+
+CREATE TABLE IF NOT EXISTS permarp_player_positions(
+user_id BIGINT NOT NULL,
+user_name VARCHAR(64) NOT NULL,
+map VARCHAR(45) NOT NULL,
+posx FLOAT NOT NULL,
+posy FLOAT NOT NULL,
+posz FLOAT NOT NULL,
+orix FLOAT NOT NULL,
+oriy FLOAT NOT NULL,
+oriz FLOAT NOT NULL,
+PRIMARY KEY(user_id,map));
+]])
 end
 
 -- Check database
 function db_check()
    table_check("permarp_door_owners")
+   table_check("permarp_player_positions")
 end
 
 function db_check_data_valid()
