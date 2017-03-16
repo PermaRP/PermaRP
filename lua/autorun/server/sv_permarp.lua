@@ -245,10 +245,6 @@ WHERE user_id = %s AND map = %s
    just_joined[ply:SteamID64()] = false
 end
 
-function permarp_player_use(ply,ent)
-   if (ent:
-end
-
 hook.Add("OnGamemodeLoaded","permarp_gamemode_serverhook",
          function()
             if GAMEMODE.Name != "DarkRP" then return end
@@ -264,6 +260,5 @@ hook.Add("OnGamemodeLoaded","permarp_gamemode_serverhook",
             hook.Add("PlayerInitialSpawn","permarp_player_join",permarp_player_join)
             hook.Add("PlayerDisconnected","permarp_player_disconnected",permarp_player_leave)
             hook.Add("PlayerSpawn","permarp_player_spawn",permarp_player_spawn)
-            hook.Add("PlayerUse","permarp_player_use",permarp_player_use);
          end
 )
