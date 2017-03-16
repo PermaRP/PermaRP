@@ -146,7 +146,7 @@ WHERE user_id = %s AND map = %s;
             e:setKeysTitle("Owned by:\n"..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")")
             e:SetVar("user_id",tostring(ply:SteamID64()))
 
-            Timer.create("permarp_player_leave_lock_door_"..tostring(row.id),1,1,
+            timer.Create("permarp_player_leave_lock_door_"..tostring(row.id),1,1,
                          function()
                             print("Locking door...")
                             set_door_lock(e,row.locked == "true")
