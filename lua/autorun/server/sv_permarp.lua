@@ -85,16 +85,13 @@ WHERE user_id = %s;
          for _, row in pairs(r) do
             local e = DarkRP.doorIndexToEnt(tonumber(row.id))
             if not IsValid(e) then continue end
-            e:getDoorData().title = ""
-            e:getDoorData().nonOwnable = false
+            e:setKeysTitle("")
+            e:setKeysNonOwnable(false)
             e:getDoorData().allowedToOwn = {}
             e:getDoorData().allowedToOwn[ply:UserID()] = true
-            DarkRP.updateDoorData(e,"title")
-            DarkRP.updateDoorData(e,"nonOwnable")
             DarkRP.updateDoorData(e,"allowedToOwn")
             e:SetVar("user_id",tostring(ply:SteamID64()))
-            e:keysOwn(ply)
-            
+            e:keysOwn(ply)            
             if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end           
          end
       end
@@ -141,16 +138,17 @@ WHERE user_id = %s AND map = %s;
          for _, row in pairs(r) do
             local e = DarkRP.doorIndexToEnt(tonumber(row.id))
             if not IsValid(e) then continue end
-            e:getDoorData().nonOwnable = true
-            e:getDoorData().title = "Owned by:\n"..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")"
-            DarkRP.updateDoorData(e,"title")
-            DarkRP.updateDoorData(e,"nonOwnable")
+            e:setKeysNonOwnable(true)
+            e:setKeysTitle("Owned by:\n"..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")")
             e:SetVar("user_id",tostring(ply:SteamID64()))
-            timer.Create("permarp_lock_timer", 0, 1,
-                         function()
-                            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end
-                         end
-            )
+            
+            if row.locked == "true" then
+               print(row.id.." lock fired!")
+               e:Fire("lock","",0)
+            else
+               print(row.id.." unlock fired!")
+               e:Fire("unlock","",0)
+            end
          end
       end
    )
@@ -162,7 +160,8 @@ function db_parse()
       string.format([[
 SELECT *
 FROM permarp_door_owners
-WHERE map = %s;]],MySQLite.SQLStr(string.lower(game.GetMap()))),
+WHERE map = %s;]],
+         MySQLite.SQLStr(string.lower(game.GetMap()))),
       function(r)
          if not r then return end
          for _, row in pairs(r) do
