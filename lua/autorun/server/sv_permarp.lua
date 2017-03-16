@@ -4,6 +4,10 @@ if CLIENT then return end
 
 just_joined = {}
 
+function set_door_lock(door,locked)
+   door:SetSaveValue("m_bLocked",locked)
+end
+
 -- DB Helper
 function db_do(query,fnc)
    MySQLite.query(query,
@@ -92,7 +96,7 @@ WHERE user_id = %s;
             DarkRP.updateDoorData(e,"allowedToOwn")
             e:SetVar("user_id",tostring(ply:SteamID64()))
             e:keysOwn(ply)            
-            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end
+            set_door_lock(e,row.locked == "true")
          end
       end
    )
@@ -142,13 +146,7 @@ WHERE user_id = %s AND map = %s;
             e:setKeysTitle("Owned by:\n"..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")")
             e:SetVar("user_id",tostring(ply:SteamID64()))
             
-            if row.locked == "true" then
-               print(row.id.." lock fired!")
-               e:Fire("lock","",0)
-            else
-               print(row.id.." unlock fired!")
-               e:Fire("unlock","",0)
-            end
+            set_door_lock(e,row.locked == "true")
          end
       end
    )
@@ -173,7 +171,7 @@ WHERE map = %s;]],
             DarkRP.updateDoorData(e,"nonOwnable")
             
             e:SetVar("user_id",row.user_id)
-            if row.locked == "true" then e:Fire("lock","",0) else e:Fire("unlock","",0) end
+            set_door_lock(e,row.locked == "true")
          end
       end
    )
@@ -247,6 +245,10 @@ WHERE user_id = %s AND map = %s
    just_joined[ply:SteamID64()] = false
 end
 
+function permarp_player_use(ply,ent)
+   if (ent:
+end
+
 hook.Add("OnGamemodeLoaded","permarp_gamemode_serverhook",
          function()
             if GAMEMODE.Name != "DarkRP" then return end
@@ -262,5 +264,6 @@ hook.Add("OnGamemodeLoaded","permarp_gamemode_serverhook",
             hook.Add("PlayerInitialSpawn","permarp_player_join",permarp_player_join)
             hook.Add("PlayerDisconnected","permarp_player_disconnected",permarp_player_leave)
             hook.Add("PlayerSpawn","permarp_player_spawn",permarp_player_spawn)
+            hook.Add("PlayerUse","permarp_player_use",permarp_player_use);
          end
 )
