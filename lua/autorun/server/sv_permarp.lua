@@ -148,7 +148,6 @@ WHERE user_id = %s AND map = %s;
 
             timer.Create("permarp_player_leave_lock_door_"..tostring(row.id),1,1,
                          function()
-                            print("Locking door "..tostring(e:doorIndex()))
                             set_door_lock(e,row.locked == "true")
                          end
             )
