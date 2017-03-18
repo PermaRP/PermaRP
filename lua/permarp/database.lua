@@ -33,7 +33,7 @@ posz FLOAT NOT NULL,
 PRIMARY KEY(user_id,map));
 ]])
    end,
-   checkTable = function()
+   checkTable = function(name)
       MySQLite.tableExists(
          name,
          function(exists)
@@ -47,30 +47,30 @@ PRIMARY KEY(user_id,map));
       )
    end,
    check = function()
-      checkTable("permarp_door_owners")
-      checkTable("permarp_player_positions")
+      Database.checkTable("permarp_door_owners")
+      Database.checkTable("permarp_player_positions")
    end,
    parse = function()
-       Database.query(
-      string.format([[
+      Database.query(
+          string.format([[
 SELECT *
 FROM permarp_door_owners
 WHERE map = %s;]],
-         MySQLite.SQLStr(string.lower(game.GetMap()))),
-      function(r)
-         if not r then return end
-         for _, row in pairs(r) do
-            local e = DarkRP.doorIndexToEnt(tonumber(row.id))
-            if not IsValid(e) then continue end
-            e:getDoorData().nonOwnable = true
-            e:getDoorData().title = "Owned by:\n "..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")"
-            DarkRP.updateDoorData(e,"title")
-            DarkRP.updateDoorData(e,"nonOwnable")
-            
-            e:SetVar("user_id",row.user_id)
-            set_door_lock(e,row.locked == "true")
-         end
-      end
-       )
+             MySQLite.SQLStr(string.lower(game.GetMap()))),
+          function(r)
+             if not r then return end
+             for _, row in pairs(r) do
+                local e = DarkRP.doorIndexToEnt(tonumber(row.id))
+                if not IsValid(e) then continue end
+                e:getDoorData().nonOwnable = true
+                e:getDoorData().title = "Owned by:\n "..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")"
+                DarkRP.updateDoorData(e,"title")
+                DarkRP.updateDoorData(e,"nonOwnable")
+                
+                e:SetVar("user_id",row.user_id)
+                Doors.lockDoor(e,row.locked == "true")
+             end
+          end
+      )
    end
 }

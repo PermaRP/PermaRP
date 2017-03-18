@@ -5,16 +5,16 @@ Doors = {
       
       onDoorBought = function(ply,door)
          print(tostring(ply:SteamID64())..' bought a door with the ID '..tostring(door:doorIndex()))
-         DB.addDoorOwnership(door)
+         Doors.DB.addDoorOwnership(door,ply)
       end,
       
       onDoorSold = function(ply,door)
          print(tostring(ply:SteamID64())..' sold a door with the ID '..tostring(door:doorIndex()))
-         DB.deleteDoorOwnership(door)
+         Doors.DB.removeDoorOwnership(door)
       end,
       
       onPlayerJoined = function(ply)
-         Doors.Database.UpdatePlayerName(ply)
+         Doors.DB.updatePlayerName(ply)
          Database.query(
             string.format([[
 SELECT id, locked
@@ -34,14 +34,14 @@ WHERE user_id = %s;
                   DarkRP.updateDoorData(e,"allowedToOwn")
                   e:SetVar("user_id",tostring(ply:SteamID64()))
                   e:keysOwn(ply)            
-                  set_door_lock(e,row.locked == "true")
+                  Doors.lockDoor(e,row.locked == "true")
                end
             end
          )
       end,
       
       onPlayerDisconnected = function(ply)
-         Database.UpdatePlayerName(ply)
+         Doors.DB.updatePlayerName(ply)
          Database.query(
             string.format([[
 SELECT *
@@ -61,7 +61,7 @@ WHERE user_id = %s AND map = %s;
                   
                   timer.Create("permarp_player_leave_lock_door_"..tostring(row.id),1,1,
                                function()
-                                  set_door_lock(e,row.locked == "true")
+                                  Doors.lockDoor(e,row.locked == "true")
                                end
                   )
                end
@@ -70,14 +70,17 @@ WHERE user_id = %s AND map = %s;
       end,
       
       register = function()
-         hook.Add("playerBoughtDoor","permarp_door_bought",onDoorBought)
-         hook.Add("playerKeysSold","permarp_door_sold",onDoorSold)
-         hook.Add("onKeysLocked","permarp_door_locked",onDoorLocked)
-         hook.Add("onKeysUnlocked","permarp_door_unlocked",onDoorUnlocked)
-         hook.Add("PlayerInitialSpawn","permarp_door_player_joined",onPlayerJoined)
-         hook.add("PlayerDisconnected","permarp_door_player_disconnected",onPlayerDisconnected)
+         hook.Add("playerBoughtDoor","permarp_door_bought",Doors.Hooks.onDoorBought)
+         hook.Add("playerKeysSold","permarp_door_sold",Doors.Hooks.onDoorSold)
+         hook.Add("onKeysLocked","permarp_door_locked",Doors.Hooks.onDoorLocked)
+         hook.Add("onKeysUnlocked","permarp_door_unlocked",Doors.Hooks.onDoorUnlocked)
+         hook.Add("PlayerInitialSpawn","permarp_door_player_joined",Doors.Hooks.onPlayerJoined)
+         hook.Add("PlayerDisconnected","permarp_door_player_disconnected",Doors.Hooks.onPlayerDisconnected)
       end      
    },
+   lockDoor = function(door,locked)
+      door:SetSaveValue("m_bLocked", locked)
+   end,
    DB = {
       writeLocked = function(door,locked)
          Database.query(
@@ -114,7 +117,7 @@ WHERE id = %s AND map = %s;]],
          )
       end,
       
-      addDoorOwnership = function(door)
+      addDoorOwnership = function(door,ply)
          Database.query(
             string.format(
                [[REPLACE INTO permarp_door_owners VALUES(%s,%s,%s,%s,%s)]],

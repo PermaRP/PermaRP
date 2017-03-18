@@ -6,7 +6,7 @@ Spawn = {
          just_joined[ply:SteamID64()] = true
       end,
       onPlayerDisconnected = function(ply)
-         Database.updatePlayerSpawnPosition(ply)
+         Spawn.DB.updatePlayerSpawnPosition(ply)
       end,
       onPlayerSpawn = function(ply)
          if not just_joined[ply:SteamID64()] then return end
@@ -32,12 +32,12 @@ WHERE user_id = %s AND map = %s
          just_joined[ply:SteamID64()] = false
       end,
       register = function()
-         hook.Add("PlayerInitialSpawn","permarp_spawn_player_joined",onPlayerJoined)
-         hook.Add("PlayerDisconnected","permarp_spawn_player_disconnected",onPlayerDisconnceted)
-         hook.Add("PlayerSpawn","permarp_spawn_player_spawn",onPlayerSpawn)
+         hook.Add("PlayerInitialSpawn","permarp_spawn_player_joined",Spawn.Hooks.onPlayerJoined)
+         hook.Add("PlayerDisconnected","permarp_spawn_player_disconnected",Spawn.Hooks.onPlayerDisconnceted)
+         hook.Add("PlayerSpawn","permarp_spawn_player_spawn",Spawn.Hooks.onPlayerSpawn)
       end
    },
-   Database = {
+   DB = {
       updatePlayerSpawnPosition = function(ply)
          if not ply:Alive() or (not ply:IsOnGround() and not ply:InVehicle()) then return end
          Database.query(
