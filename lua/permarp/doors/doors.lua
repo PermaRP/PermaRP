@@ -1,7 +1,7 @@
 Doors = {
    Hooks = {
-      onDoorLocked = function(door) DB.writeLocked(door,true) end,      
-      onDoorUnlocked = function(door) DB.writeLocked(door,false) end,
+      onDoorLocked = function(door) Doors.DB.writeLocked(door,true) end,      
+      onDoorUnlocked = function(door) Doors.DB.writeLocked(door,false) end,
       
       onDoorBought = function(ply,door)
          print(tostring(ply:SteamID64())..' bought a door with the ID '..tostring(door:doorIndex()))
@@ -62,6 +62,7 @@ WHERE user_id = %s AND map = %s;
                   timer.Create("permarp_player_leave_lock_door_"..tostring(row.id),1,1,
                                function()
                                   Doors.lockDoor(e,row.locked == "true")
+                                  e:setKeysTitle("Owned by:\n"..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")")
                                end
                   )
                end
