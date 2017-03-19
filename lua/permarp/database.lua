@@ -62,10 +62,8 @@ WHERE map = %s;]],
              for _, row in pairs(r) do
                 local e = DarkRP.doorIndexToEnt(tonumber(row.id))
                 if not IsValid(e) then continue end
-                e:getDoorData().nonOwnable = true
-                e:getDoorData().title = "Owned by:\n "..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")"
-                DarkRP.updateDoorData(e,"title")
-                DarkRP.updateDoorData(e,"nonOwnable")
+                e:setKeysNonOwnable(true)
+                e:setKeysTitle("Owned by:\n "..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")")
                 
                 e:SetVar("user_id",row.user_id)
                 Doors.lockDoor(e,row.locked == "true")
