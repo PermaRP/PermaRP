@@ -56,8 +56,10 @@ WHERE user_id = %s AND map = %s;
                   local e = DarkRP.doorIndexToEnt(tonumber(row.id))
                   if not IsValid(e) then continue end
                   e:setKeysNonOwnable(true)
+                  e:getDoorData().owner = nil
+                  DarkRP.updateDoorData(e,"owner")
                   e:setKeysTitle("Owned by:\n"..row.user_name.."\n(Steam ID: "..tostring(row.user_id)..")")
-                  e:SetVar("user_id",tostring(ply:SteamID64()))
+                  e:SetVar("user_id",tostring(ply:SteamID64()))                  
                   
                   timer.Create("permarp_player_leave_lock_door_"..tostring(row.id),1,1,
                                function()
